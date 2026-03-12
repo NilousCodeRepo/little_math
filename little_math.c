@@ -18,9 +18,7 @@
 //TODO: if it does not work, use atan2 intel's x86_64 instruction in asm
 double LILM_arctan(double y, double x)
 {
-//    if(x < -1.0 || x > 1.0) return -1;
-//    return x - (pow(x,3.0)/3.0) + (pow(x, 5.0)/5.0) - (pow(x,7.0)/7.0) + (pow(x,9.0)/9.0) - (pow(x,11.0)/11.0);
-    __asm__("\n");
+
 }
 
 double LILM_sin()//devi calcolarti l'arcotangete prova con taylor

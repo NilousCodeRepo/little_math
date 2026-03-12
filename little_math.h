@@ -1,7 +1,11 @@
 //TODO: #define double as RATIONAL and UNSIGNED INT as NATURAL 
 
-double LILM_pow(double* base, double* exponent);
-double LILM_sqrt(double* num);
+double LILM_abs(double x);
+
+double LILM_pow(double base, double exponent);
+double LILM_sqrt(double num);
+
+double LILM_deg_to_rad(double degrees);
 
 #ifdef LITTLE_MATH_IMPLEMENTATION
     #define LILM_vec2           vec2
@@ -51,9 +55,6 @@ double LILM_pow(double base, double exponent)
 	double result = 1.0;
 	for(int i = 0; i < abs(exponent); ++i)
 		result = result * base;
-		//1 = 1*3 = 3 ->
-		//3 = 3 * 3 = 9 -> 
-		//9 = 9 * 3 = 27
 
 	return result;
 }
@@ -91,7 +92,7 @@ double LILM_sqrt(double num)
 double LILM_deg_to_rad(double degrees)
 {
 	//i hope gcc optimized this calculation
-	const double conversion_factor = LILM_PI/180;
+	const double conversion_factor = LILM_PI/(LILM_PI/2);//pi/180;
 	return conversion_factor * degrees;
 }
 
