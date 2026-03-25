@@ -7,7 +7,7 @@ double LILM_sqrt(double num);
 
 double LILM_deg_to_rad(double degrees);
 
-#ifdef LITTLE_MATH_IMPLEMENTATION
+#ifdef LITTLE_MATH_STRIP_PREFIX
     #define LILM_vec2           vec2
     
     #define LILM_abs            abs

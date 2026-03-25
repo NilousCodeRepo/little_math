@@ -1,4 +1,24 @@
-//TODO: look up nob to see how to remove the LILM_ with defines
+/*TODO: Optional Params:
+ 
+ *      func(rect, TransformParams) dove l'ultimo argomento è quello opzionale
+ *      
+ *      struct TransformParams Dove inizializzo i valori
+ *      {
+ *          a
+ *          b
+ *          c
+ *          d
+ *      }
+ *      
+ *      #define func(rect,...) \
+ *          _func( (rect), (TransformParams){ .a=0 , __VA_ARGS__} ) puoi anche non inizializzare a
+ *
+ *      _func(Rect rect, TransformParams TransformParams) Function Definition
+
+*/
+
+
+
 //TODO: Use a profiler and a static analizer and a linter
 
 //TODO: Use 2double e 4double precision(Dekker method) for high precision ops
@@ -6,7 +26,7 @@
 #include <stdio.h>
 
 #define LITTLE_MATH
-#define LITTLE_MATH_IMPLEMENTATION
+#define LITTLE_MATH_STRIP_PREFIX
 #include "little_math.h"
 
 //TODO: make lookup table for commonly used values
@@ -21,7 +41,7 @@ double LILM_arctan(double y, double x)
 
 }
 
-double LILM_sin()//devi calcolarti l'arcotangete prova con taylor
+double LILM_sin()
 {
     vec2 v = {.x = 1.0f,
               .y = 0.0f
