@@ -1,23 +1,5 @@
-/*TODO: Optional Params:
- 
- *      func(rect, TransformParams) dove l'ultimo argomento è quello opzionale
- *      
- *      struct TransformParams Dove inizializzo i valori
- *      {
- *          a
- *          b
- *          c
- *          d
- *      }
- *      
- *      #define func(rect,...) \
- *          _func( (rect), (TransformParams){ .a=0 , __VA_ARGS__} ) puoi anche non inizializzare a
- *
- *      _func(Rect rect, TransformParams TransformParams) Function Definition
-
-*/
-
-
+//TODO: make lookup table for commonly used values
+// and make #defines to common values, so that the computations are done only on "non-common" angles
 
 //TODO: Use a profiler and a static analizer and a linter
 
@@ -29,17 +11,7 @@
 #define LITTLE_MATH_STRIP_PREFIX
 #include "little_math.h"
 
-//TODO: make lookup table for commonly used values
-// and make #defines to common values, so that the computations are done only on "non-common" angles
-
 #define ITERS 16 
-
-//Taylor Aproximation, domain = [-1,1]
-//TODO: if it does not work, use atan2 intel's x86_64 instruction in asm
-double LILM_arctan(double y, double x)
-{
-
-}
 
 double LILM_sin()
 {
@@ -56,9 +28,9 @@ double LILM_sin()
     }
 }
 
-int main(int argc, char** argv)
+int main(int argc, char** argvi)
 {
-    printf("TAYLOR OF ARCTAN %lf\n", LILM_arctan(0.5f));
+
     return 0;
 
 }
