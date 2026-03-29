@@ -1,11 +1,17 @@
-//TODO: #define double as RATIONAL and UNSIGNED INT as NATURAL 
-
 double LILM_abs(double x);
 
 double LILM_pow(double base, double exponent);
 double LILM_sqrt(double num);
 
 double LILM_deg_to_rad(double degrees);
+double LILM_rad_to_deg(double radians);
+
+double LILM_arctan_aprox(double x);
+double LILM_atan2(double y, double x, bool conv_to_dgr);
+
+double LILM_sin(double angle);
+double LILM_cos(double angle);
+double LILM_tan(double angle);
 
 #ifdef LITTLE_MATH_STRIP_PREFIX
     
@@ -18,8 +24,13 @@ double LILM_deg_to_rad(double degrees);
     
     #define LILM_deg_to_rad     deg_to_rad
     #define LILM_rad_to_deg     rad_to_deg
-
+    
+    #define LILM_arctan_aprox   arc_tan
     #define LILM_atan2          atan2
+    
+    #define LILM_sin            sin
+    #define LILM_cos            cos
+    #define LILM_tan           tan
 
 #endif
 
@@ -28,7 +39,7 @@ double LILM_deg_to_rad(double degrees);
 #define PI 3.141592
 
 //for trig func that use CORDIC
-#define K_CONSTANT 1.646760
+#define K_CONSTANT 0.607253f
 
 typedef struct
 {
@@ -38,7 +49,7 @@ typedef struct
 
 double LILM_abs(double x)
 {
-    return x < 0 ? -x : x;
+    return x < 0 ? x : x;
 }
 
 double LILM_pow(double base, double exponent)
@@ -61,7 +72,6 @@ double LILM_pow(double base, double exponent)
 
 	return result;
 }
-
 
 //implementa Heron e successivamente Newton
 //sono i compromessi migliori
@@ -106,11 +116,12 @@ double LILM_rad_to_deg(double radians)
 	return conversion_factor * radians;
 }
 
+
 //this is an aproximation of the resulting angle obtained by doing sin(x)/cos(x)(which is the formula for the arctangent)
 //the arctangent is used to "extract" the angle variable from sin(x)/cos(x)
 
 //Code taken from https://mazzo.li/posts/vectorized-atan2.html  "Speeding `atan2f` 50x"
-double arctan_scalar_aprox(double x)
+double LILM_arctan_aprox(double x)
 {
     //magic numbers coming from "Aproximation for Digital Computers by Cecil Hastrings Jr. 1955"
     float a1 = 0.99997726f;
@@ -139,7 +150,7 @@ double LILM_atan2(double y, double x, bool conv_to_dgr)
     //division needed to have a Domain in [-1,1]
     double input = (swap ? x : y) / (swap ? y : x);
 
-    double res = arctan_scalar_aprox(input);
+    double res = LILM_arctan_aprox(input);
 
     double adjust_if_swapped = ( input >= 0.0f ? PI/2 : -1*(PI/2) ) - res;
     
@@ -151,6 +162,122 @@ double LILM_atan2(double y, double x, bool conv_to_dgr)
     if( conv_to_dgr )
         return rad_to_deg(res); 
     return res;
+}
+
+#define POSITIVE 1 
+#define NEGATIVE -1 
+#define ITERS 16    
+
+double LILM_sin(double angle)
+{
+    //negative angles are bullshit
+    if(angle < 0) angle *= -1;
+
+    //looses precision after 360, but the angle does not care about how many times you turn it in circles
+    while(angle > 360)
+    {
+        angle -= 360;
+    }
+
+    angle = deg_to_rad(angle);
+    bool rad_to_dgr = false;
+    int rotation;
+    
+    double angle_table[ITERS] = {0};   
+    double P2i = 1.0f; // idk it was in the wikipedia example
+    double current_angle = 0.0f;
+    
+    
+    vec2 coords = {
+                    .x = 1.0f, 
+                    .y = 0.0f
+                  };
+    
+    for(int idx = 0; idx < ITERS; ++idx)
+    {
+        angle_table[idx] = atan2( 1.0f, pow(2.0f, idx) , rad_to_dgr );
+    }
+
+    // every iteration i adjust the position of the current angle based on the desired one
+    for(int idx = 0; idx < ITERS; ++idx)
+    {
+        if( current_angle < angle) rotation = POSITIVE;
+        else rotation = NEGATIVE;
+        
+        current_angle += rotation * angle_table[idx];
+        
+        double old_x = coords.x;
+        double old_y = coords.y;
+
+        coords.x = old_x - rotation * old_y * P2i;
+        coords.y = rotation * old_x * P2i + old_y;
+        
+        P2i = P2i / 2;
+    }
+
+    coords.y = coords.y * K_CONSTANT;
+
+    return coords.y;
+}
+
+double LILM_cos(double angle)
+{
+    //negative angles are bullshit
+    if(angle < 0) angle *= -1;
+
+    //looses precision after 360, but the angle does not care about how many times you turn it in circles
+    while(angle > 360)
+    {
+        angle -= 360;
+    }
+
+    angle = deg_to_rad(angle);
+    bool rad_to_dgr = false;
+    int rotation;
+    
+    double angle_table[ITERS] = {0};   
+    double P2i = 1.0f; // idk it was in the wikipedia example
+    double current_angle = 0.0f;
+    
+    vec2 coords = {
+                    .x = 1.0f, 
+                    .y = 0.0f
+                  };
+    
+    for(int idx = 0; idx < ITERS; ++idx)
+    {
+        angle_table[idx] = atan2( 1.0f, pow(2.0f, idx) , rad_to_dgr );
+    }
+
+    // every iteration i adjust the position of the current angle based on the desired one
+    for(int idx = 0; idx < ITERS; ++idx)
+    {
+        if( current_angle < angle) rotation = POSITIVE;
+        else rotation = NEGATIVE;
+        
+        current_angle += rotation * angle_table[idx];
+        
+        double old_x = coords.x;
+        double old_y = coords.y;
+
+        coords.x = old_x - rotation * old_y * P2i;
+        coords.y = rotation * old_x * P2i + old_y;
+        
+        P2i = P2i / 2;
+    }
+
+    coords.x = coords.x * K_CONSTANT;
+
+    //can't have negative cos, but the computer is dumb, and I more than him
+    if(coords.x < 0) coords.x *= -1;
+
+    return coords.x;
+}
+
+//TODO: make research to make this faster
+double LILM_tan(double angle)
+{
+    return LILM_sin(angle)/LILM_cos(angle);
 }
 
 #endif
