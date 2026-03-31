@@ -3,12 +3,12 @@ OBJECTS := little_math.o
 ifeq ($(MODE),opt)
 	# does not use optimized version of build-in tangent function
 	DEGUG_FLAGS := -fno-builtin
-	COMPILE_FLAGS := -std=c23 -Wno-builtin-declaration-mismatch
+	COMPILE_FLAGS := -std=c23 -fno-builtin -Wno-builtin-declaration-mismatch
 	OPTIMIZATION_FLAGS := -O3
 	LINK_FLAGS := -fno-math-errno
 else
-	DEGUG_FLAGS := -g3
-	COMPILE_FLAGS := -std=c23 -Wno-builtin-declaration-mismatch
+	DEGUG_FLAGS := -ggdb
+	COMPILE_FLAGS := -std=c23 -fno-builtin -Wno-builtin-declaration-mismatch
 	OPTIMIZATION_FLAGS := -O0
 	LINK_FLAGS := -fno-math-errno
 endif

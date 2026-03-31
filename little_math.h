@@ -1,18 +1,3 @@
-double LILM_abs(double x);
-
-double LILM_pow(double base, double exponent);
-double LILM_sqrt(double num);
-
-double LILM_deg_to_rad(double degrees);
-double LILM_rad_to_deg(double radians);
-
-double LILM_arctan_aprox(double x);
-double LILM_atan2(double y, double x, bool conv_to_dgr);
-
-double LILM_sin(double angle);
-double LILM_cos(double angle);
-double LILM_tan(double angle);
-
 #ifdef LITTLE_MATH_STRIP_PREFIX
     
     #define LILM_vec2           vec2
@@ -35,6 +20,21 @@ double LILM_tan(double angle);
 #endif
 
 #ifdef LITTLE_MATH
+
+double LILM_abs(double x);
+
+double LILM_sqrt(double num);
+double LILM_pow(double base, double exponent);
+
+double LILM_deg_to_rad(double degrees);
+double LILM_rad_to_deg(double radians);
+
+double LILM_arctan_aprox(double x);
+double LILM_atan2(double y, double x, bool conv_to_dgr);
+
+double LILM_sin(double angle);
+double LILM_cos(double angle);
+double LILM_tan(double angle);
 
 #define PI 3.141592
 
@@ -66,7 +66,10 @@ double LILM_pow(double base, double exponent)
         base = 1/base;
     }
 
-	double result = 1.0;
+    if(exponent < 1 && exponent > 0)
+        return sqrt(base);
+	
+    double result = 1.0;
 	for(int i = 0; i < abs(exponent); ++i)
 		result = result * base;
 
