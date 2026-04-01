@@ -21,10 +21,12 @@
 
 #ifdef LITTLE_MATH
 
+#include "lookup_table.h"
+
 double LILM_abs(double x);
 
-double LILM_sqrt(double num);
 double LILM_pow(double base, double exponent);
+double LILM_sqrt(double num);
 
 double LILM_deg_to_rad(double degrees);
 double LILM_rad_to_deg(double radians);
@@ -76,8 +78,6 @@ double LILM_pow(double base, double exponent)
 	return result;
 }
 
-//implementa Heron e successivamente Newton
-//sono i compromessi migliori
 double LILM_sqrt(double num)
 {
 	double result = 0.0;
@@ -171,17 +171,37 @@ double LILM_atan2(double y, double x, bool conv_to_dgr)
 #define NEGATIVE -1 
 #define ITERS 16    
 
+//used to check if number has floating digits != 0
+typedef union {
+  double f;
+  struct {
+    unsigned long int mantissa : 52;
+    unsigned int exponent : 11;
+    unsigned int sign : 1;
+  } parts;
+} float_cast;
+
 double LILM_sin(double angle)
 {
     //negative angles are bullshit
     if(angle < 0) angle *= -1;
 
-    //looses precision after 360, but the angle does not care about how many times you turn it in circles
-    while(angle > 360)
+    while(angle > 90)
     {
-        angle -= 360;
+        angle -= 90;
     }
-
+   
+    //compute the sin value only if it has decimal part 
+    float_cast cast = {.f=angle};
+    if (cast.parts.mantissa == 0.0f)
+    {
+        for(int i = 0; i <= 90; ++i)
+        {
+            if(angle == *SIN_TABLE[i])
+                return SIN_TABLE[i][1];
+        }
+    }
+    
     angle = deg_to_rad(angle);
     bool rad_to_dgr = false;
     int rotation;
@@ -228,12 +248,22 @@ double LILM_cos(double angle)
     //negative angles are bullshit
     if(angle < 0) angle *= -1;
 
-    //looses precision after 360, but the angle does not care about how many times you turn it in circles
-    while(angle > 360)
+    while(angle > 90)
     {
-        angle -= 360;
+        angle -= 90;
     }
 
+    //compute the cos value only if it has decimal part 
+    float_cast cast = {.f=angle};
+    if (cast.parts.mantissa == 0.0f)
+    {
+        for(int i = 0; i <= 90; ++i)
+        {
+            if(angle == *COS_TABLE[i])
+                return COS_TABLE[i][1];
+        }
+    }
+    
     angle = deg_to_rad(angle);
     bool rad_to_dgr = false;
     int rotation;
