@@ -4,8 +4,9 @@
 #define LITTLE_MATH
 #include "little_math.h"
 
+//TODO: trova modo per controllare mantissa
 int main(int argc, char** argv)
 {
-
+    return 0;
 }
 

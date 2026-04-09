@@ -1,7 +1,5 @@
 #ifdef LITTLE_MATH_STRIP_PREFIX
     
-    #define LILM_vec2           vec2
-    
     #define LILM_abs            abs
     
     #define LILM_pow            pow
@@ -15,7 +13,7 @@
     
     #define LILM_sin            sin
     #define LILM_cos            cos
-    #define LILM_tan           tan
+    #define LILM_tan            tan
 
 #endif
 
@@ -23,38 +21,32 @@
 
 #include "lookup_table.h"
 
-double LILM_abs(double x);
+float LILM_abs(float x);
 
-double LILM_pow(double base, double exponent);
-double LILM_sqrt(double num);
+float LILM_pow(float base, float exponent);
+float LILM_sqrt(float num);
 
-double LILM_deg_to_rad(double degrees);
-double LILM_rad_to_deg(double radians);
+float LILM_deg_to_rad(float degrees);
+float LILM_rad_to_deg(float radians);
 
-double LILM_arctan_aprox(double x);
-double LILM_atan2(double y, double x, bool conv_to_dgr);
+float LILM_arctan_aprox(float x);
+float LILM_atan2(float y, float x, bool conv_to_dgr);
 
-double LILM_sin(double angle);
-double LILM_cos(double angle);
-double LILM_tan(double angle);
+float LILM_sin(float angle);
+float LILM_cos(float angle);
+float LILM_tan(float angle);
 
 #define PI 3.141592
 
 //for trig func that use CORDIC
 #define K_CONSTANT 0.607253f
 
-typedef struct
-{
-    double x;
-	double y;
-}LILM_vec2;
-
-double LILM_abs(double x)
+float LILM_abs(float x)
 {
     return x < 0 ? x : x;
 }
 
-double LILM_pow(double base, double exponent)
+float LILM_pow(float base, float exponent)
 {
 	if(base == 0)
 		return 0;
@@ -71,16 +63,16 @@ double LILM_pow(double base, double exponent)
     if(exponent < 1 && exponent > 0)
         return sqrt(base);
 	
-    double result = 1.0;
+    float result = 1.0;
 	for(int i = 0; i < abs(exponent); ++i)
 		result = result * base;
 
 	return result;
 }
 
-double LILM_sqrt(double num)
+float LILM_sqrt(float num)
 {
-	double result = 0.0;
+	float result = 0.0;
 	
 	if(num == 0)
 	{
@@ -90,11 +82,11 @@ double LILM_sqrt(double num)
 	if(num < 0)
  	    printf("ERROR: Invalid value\n");
 	
-    double estimate = num/2;
+    float estimate = num/2;
 
 	const float HALF = 0.5f;
 
-	double start = HALF*( estimate + (num/estimate) );
+	float start = HALF*( estimate + (num/estimate) );
 
 	for(int i = 0; i<= 6; ++i)
 	{
@@ -105,17 +97,17 @@ double LILM_sqrt(double num)
 	return result;
 }
 
-double LILM_deg_to_rad(double degrees)
+float LILM_deg_to_rad(float degrees)
 {
 	//i hope gcc optimized this calculation
-	const double conversion_factor = PI/180;
+	const float conversion_factor = PI/180;
 	return conversion_factor * degrees;
 }
 
-double LILM_rad_to_deg(double radians)
+float LILM_rad_to_deg(float radians)
 {
 	//i hope gcc optimized this calculation
-	const double conversion_factor = 180/PI;
+	const float conversion_factor = 180/PI;
 	return conversion_factor * radians;
 }
 
@@ -124,7 +116,7 @@ double LILM_rad_to_deg(double radians)
 //the arctangent is used to "extract" the angle variable from sin(x)/cos(x)
 
 //Code taken from https://mazzo.li/posts/vectorized-atan2.html  "Speeding `atan2f` 50x"
-double LILM_arctan_aprox(double x)
+float LILM_arctan_aprox(float x)
 {
     //magic numbers coming from "Aproximation for Digital Computers by Cecil Hastrings Jr. 1955"
     float a1 = 0.99997726f;
@@ -146,16 +138,16 @@ double LILM_arctan_aprox(double x)
 // IN RADIANS
 
 //Code taken from https://mazzo.li/posts/vectorized-atan2.html  "Speeding `atan2f` 50x"
-double LILM_atan2(double y, double x, bool conv_to_dgr)
+float LILM_atan2(float y, float x, bool conv_to_dgr)
 {
     bool swap = abs(x) < abs(y);
 
     //division needed to have a Domain in [-1,1]
-    double input = (swap ? x : y) / (swap ? y : x);
+    float input = (swap ? x : y) / (swap ? y : x);
 
-    double res = LILM_arctan_aprox(input);
+    float res = LILM_arctan_aprox(input);
 
-    double adjust_if_swapped = ( input >= 0.0f ? PI/2 : -1*(PI/2) ) - res;
+    float adjust_if_swapped = ( input >= 0.0f ? PI/2 : -1*(PI/2) ) - res;
     
     res = swap ? adjust_if_swapped : res;
 
@@ -169,53 +161,58 @@ double LILM_atan2(double y, double x, bool conv_to_dgr)
 
 #define POSITIVE 1 
 #define NEGATIVE -1 
-#define ITERS 16    
+#define ITERS 16
 
-//used to check if number has floating digits != 0
-typedef union {
-  double f;
-  struct {
-    unsigned long int mantissa : 52;
-    unsigned int exponent : 11;
-    unsigned int sign : 1;
-  } parts;
-} float_cast;
-
-double LILM_sin(double angle)
+//This implementation work only in the -90,+90 range
+float LILM_sin(float angle)
 {
-    //negative angles are bullshit
-    if(angle < 0) angle *= -1;
-
-    while(angle > 90)
+#define SIN_VALUE 1
+    while( angle > 90.0f)
     {
         angle -= 90;
+    }
+
+    if(angle < 0.0f)
+    {
+        while(angle < -90.0f)
+        {
+            angle += 90.0f;
+        }
     }
    
-    //compute the sin value only if it has decimal part 
-    float_cast cast = {.f=angle};
-    if (cast.parts.mantissa == 0.0f)
+    for(int i = 0; i <= 90; ++i)
     {
-        for(int i = 0; i <= 90; ++i)
+        if( angle < 0.0f )
+        { 
+            if( angle ==  -(*VALUE_TABLE[i]) )
+            {
+                printf("from NEG table\n");
+                return  -VALUE_TABLE[i][SIN_VALUE];
+            }
+        }
+
+        if(angle == *VALUE_TABLE[i])
         {
-            if(angle == *SIN_TABLE[i])
-                return SIN_TABLE[i][1];
+            printf("from table\n");
+            return VALUE_TABLE[i][SIN_VALUE];
         }
     }
-    
+
     angle = deg_to_rad(angle);
     bool rad_to_dgr = false;
     int rotation;
     
-    double angle_table[ITERS] = {0};   
-    double P2i = 1.0f; // idk it was in the wikipedia example
-    double current_angle = 0.0f;
+    float angle_table[ITERS] = {0};   
+    float P2i = 1.0f; // idk it was in the wikipedia example
+    float current_angle = 0.0f;
     
     
-    vec2 coords = {
-                    .x = 1.0f, 
-                    .y = 0.0f
-                  };
+    float x = 1.0f;
+    float y = 0.0f;
     
+    //calculate the positions in which the angle will be checked
+    //returns in RADIANS
+    //TODO: save this values in a table
     for(int idx = 0; idx < ITERS; ++idx)
     {
         angle_table[idx] = atan2( 1.0f, pow(2.0f, idx) , rad_to_dgr );
@@ -229,38 +226,44 @@ double LILM_sin(double angle)
         
         current_angle += rotation * angle_table[idx];
         
-        double old_x = coords.x;
-        double old_y = coords.y;
+        float old_x = x;
+        float old_y = y;
 
-        coords.x = old_x - rotation * old_y * P2i;
-        coords.y = rotation * old_x * P2i + old_y;
+        x = old_x - rotation * old_y * P2i;
+        y = rotation * old_x * P2i + old_y;
         
         P2i = P2i / 2;
     }
-
-    coords.y = coords.y * K_CONSTANT;
-
-    return coords.y;
+    return y * K_CONSTANT;
 }
 
-double LILM_cos(double angle)
+//This implementation work only in the -90,+90 range
+float LILM_cos(float angle)
 {
-    //negative angles are bullshit
-    if(angle < 0) angle *= -1;
-
-    while(angle > 90)
+#define COS_VALUE 2
+    
+    while( abs(angle) > 90.0f)
     {
-        angle -= 90;
+        if(angle < 0)
+            angle += 90.0f;
+        else
+            angle -= 90.0f;
     }
-
-    //compute the cos value only if it has decimal part 
-    float_cast cast = {.f=angle};
-    if (cast.parts.mantissa == 0.0f)
+    
+    for(int i = 0; i <= 90; ++i)
     {
-        for(int i = 0; i <= 90; ++i)
+        if( angle < 0.0f )
         {
-            if(angle == *COS_TABLE[i])
-                return COS_TABLE[i][1];
+            if(angle == -(*VALUE_TABLE[i]))
+            {
+                printf("from NEG table\n");
+                return -VALUE_TABLE[i][COS_VALUE];
+            }
+        }
+        if(angle == *VALUE_TABLE[i])
+        {
+            printf("from table\n");
+            return VALUE_TABLE[i][COS_VALUE];
         }
     }
     
@@ -268,15 +271,15 @@ double LILM_cos(double angle)
     bool rad_to_dgr = false;
     int rotation;
     
-    double angle_table[ITERS] = {0};   
-    double P2i = 1.0f; // idk it was in the wikipedia example
-    double current_angle = 0.0f;
+    float angle_table[ITERS] = {0};   
+    float P2i = 1.0f; // idk it was in the wikipedia example
+    float current_angle = 0.0f;
     
-    vec2 coords = {
-                    .x = 1.0f, 
-                    .y = 0.0f
-                  };
+    float x = 1.0f;
+    float y = 0.0f;
     
+    //calculate the positions in which the angle will be checked
+    //returns in RADIANS
     for(int idx = 0; idx < ITERS; ++idx)
     {
         angle_table[idx] = atan2( 1.0f, pow(2.0f, idx) , rad_to_dgr );
@@ -290,27 +293,32 @@ double LILM_cos(double angle)
         
         current_angle += rotation * angle_table[idx];
         
-        double old_x = coords.x;
-        double old_y = coords.y;
+        float old_x = x;
+        float old_y = y;
 
-        coords.x = old_x - rotation * old_y * P2i;
-        coords.y = rotation * old_x * P2i + old_y;
+        x = old_x - rotation * old_y * P2i;
+        y = rotation * old_x * P2i + old_y;
         
         P2i = P2i / 2;
     }
 
-    coords.x = coords.x * K_CONSTANT;
+    x = x * K_CONSTANT;
 
-    //can't have negative cos, but the computer is dumb, and I more than him
-    if(coords.x < 0) coords.x *= -1;
-
-    return coords.x;
+    return x;
 }
 
 //TODO: make research to make this faster
-double LILM_tan(double angle)
+float LILM_tan(float angle)
 {
-    return LILM_sin(angle)/LILM_cos(angle);
+    if(angle == 90.0f)
+    {
+        printf("INF\n");
+        return -1.0f;
+    }
+    else
+    {
+        return LILM_sin(angle)/LILM_cos(angle);
+    }
 }
 
 #endif

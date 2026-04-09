@@ -4,10 +4,12 @@
 
 
 ##### TODO:
+ - [x] Something is wrong with the CORDIC calculations, make it so that the values are correct
+
  - [x] make lookup table for commonly used values and make #defines to common values, so that the computations are done only on "non-common" angles
- - [ ] choose if making table smaller for less memory consumpion(calculate effective memory occupation)
+ - [x] choose if making table smaller for less memory consumpion(calculate effective memory occupation)
   
- - [ ] adjust sign of sin and cos
+ - [x] adjust sign of sin and cos
   
  - [ ] calculate nthroot
   
