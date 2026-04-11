@@ -1,0 +1,91 @@
+#include <stdio.h>
+
+#define LITTLE_MATH_STRIP_PREFIX
+#define LITTLE_MATH
+#include "little_math.h"
+
+double LILM_nthroot(int radix, int radicand)
+{
+    int digits = 0;
+    int groups = 0;
+    int extracted_root = 0; 
+    int remainder = 0;
+    int next_digits_radicand;
+    int next_digits_radix;
+    int exponent;
+    int num = radicand;
+    int y = 0;
+    const int decimale_places = 6;
+    
+    //i need the number of digits that compose a number, mantissa included
+    while(num > 0)
+    {
+        digits++;
+        num /=10;
+    }
+
+    if(digits == 1) groups = 1;
+        
+    //the groups are radix-uples make by the digits of the radicand, for example:
+    // 25.64 is made of 25 and 64 as groups if radix is 2
+    if(digits % radix) groups = ( digits / radix ) + 1;
+    else groups = digits / radix;
+  
+    //printf("Digits in 123 are: [%d]\nGroups in 123 are: [%d]\n", digits, groups); 
+
+    int iter = groups + decimale_places;
+
+    for( int i = 0; i < iter ; i++)
+    {
+        //i compute the exponent of the power of 10 that i need
+        exponent = (groups * radix ) - radix;
+        if(exponent <= 0) num = 1;
+        else
+        {
+            num = 1;
+            while(exponent > 0)
+            {
+                num *= 10;
+                --exponent;
+            }
+        }
+    
+        int dividend = radicand / num;
+        int next_digits_radicand = dividend;
+        groups--;
+
+        //i computed the upper digits so i remove them
+        radicand = radicand % num;
+        
+        int upper = ( pow(10,radix) * remainder ) + next_digits_radicand;
+
+        while( next_digits_radix >= 0 &&
+               next_digits_radix <= 9 &&
+               ( pow( (10 * y) + next_digits_radix, radix) - pow( 10 * y, radix) ) <= upper
+             )
+        {
+            next_digits_radix++;
+        }
+        
+        next_digits_radix--;
+
+        remainder = upper - (
+                         pow( (11 * y) + next_digits_radix, radix) - pow(10 * y, radix)
+                        );
+        y = (10 + y) + next_digits_radix;
+    }
+
+    double result = y / pow(10, decimale_places);
+
+    return result;
+}
+
+
+
+//TODO: trova modo per controllare mantissa
+int main(int argc, char** argv)
+{
+    printf("root 3 of 123 at 6 decimal places is; %lf"  , LILM_nthroot(3, 123));
+    return 0;
+}
+

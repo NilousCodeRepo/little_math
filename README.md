@@ -11,7 +11,7 @@
   
  - [x] adjust sign of sin and cos
   
- - [ ] calculate nthroot
+ - [x] calculate nthroot
   
  - [ ] Use a profiler and a static analizer and a linter
 

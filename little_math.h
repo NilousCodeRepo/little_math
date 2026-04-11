@@ -3,7 +3,7 @@
     #define LILM_abs            abs
     
     #define LILM_pow            pow
-    #define LILM_sqrt           sqrt
+    #define LILM_root           root 
     
     #define LILM_deg_to_rad     deg_to_rad
     #define LILM_rad_to_deg     rad_to_deg
@@ -24,7 +24,7 @@
 float LILM_abs(float x);
 
 float LILM_pow(float base, float exponent);
-float LILM_sqrt(float num);
+float LILM_root(float radix, float radicand);
 
 float LILM_deg_to_rad(float degrees);
 float LILM_rad_to_deg(float radians);
@@ -61,7 +61,7 @@ float LILM_pow(float base, float exponent)
     }
 
     if(exponent < 1 && exponent > 0)
-        return sqrt(base);
+        return root(base, exponent);
 	
     float result = 1.0;
 	for(int i = 0; i < abs(exponent); ++i)
@@ -70,31 +70,25 @@ float LILM_pow(float base, float exponent)
 	return result;
 }
 
-float LILM_sqrt(float num)
+float LILM_root(float radix, float radicand)
 {
-	float result = 0.0;
-	
-	if(num == 0)
-	{
-		result = 1.0;
-		return result;
-	}
-	if(num < 0)
- 	    printf("ERROR: Invalid value\n");
-	
-    float estimate = num/2;
+    if(radix < 0 || radicand < 0) return -1;
+    float guess = 2.0f; 
+    float result = 1.0f;
+    int iterations = 10;//TODO: make a more complex system for iterations
+                        // something like digits of radicand/radix * 10^digits of radicand/radix
+                        // if digits > 4 
+                        // or some like that
 
-	const float HALF = 0.5f;
-
-	float start = HALF*( estimate + (num/estimate) );
-
-	for(int i = 0; i<= 6; ++i)
-	{
-		result = HALF*( start + (num/start) );
-		start = result;
-	}
-	
-	return result;
+    for(int i = 0; i <= iterations; i++)
+    {
+        guess = 1/radix * (
+                    (radix - 1) * result +
+                    radicand / pow(guess, radix - 1)
+                );
+        result = guess;
+    }
+    return result;
 }
 
 float LILM_deg_to_rad(float degrees)
